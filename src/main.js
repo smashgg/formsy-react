@@ -88,7 +88,7 @@ Formsy.Form = React.createClass({
     this.setFormPristine(false);
     this.updateModel();
     var model = this.mapModel();
-    this.props.onSubmit(model, this.resetModel, this.updateInputsWithError);
+    this.props.onSubmit(model, this.resetModel, this.updateInputsWithError, event);
     this.state.isValid ? this.props.onValidSubmit(model, this.resetModel, this.updateInputsWithError) : this.props.onInvalidSubmit(model, this.resetModel, this.updateInputsWithError);
 
   },

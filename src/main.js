@@ -459,6 +459,7 @@ Formsy.Form = React.createClass({
       elFn = React.DOM.form;
       props = {
         onSubmit: this.submit,
+        action: this.props.action,
         className: this.props.className,
         autoComplete: this.props.autoComplete
       };

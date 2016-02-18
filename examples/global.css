@@ -38,8 +38,7 @@ form {
 .form-group input[type='text'],
 .form-group input[type='email'],
 .form-group input[type='number'],
-.form-group input[type='password'],
-.form-group select {
+.form-group input[type='password'] {
   display: block;
   width: 100%;
   height: 34px;
@@ -63,11 +62,4 @@ form {
 button {
   padding: 10px 15px;
   border-radius: 4px;
-}
-
-.buttons button {
-  margin-left: 10px;
-}
-.buttons button:first-child {
-  margin-left: 0;
 }

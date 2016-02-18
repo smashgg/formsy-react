@@ -1,16 +1,11 @@
 var React = global.React || require('react');
 var Formsy = {};
 var validationRules = require('./validationRules.js');
-var formDataToObject = require('form-data-to-object');
 var utils = require('./utils.js');
 var Mixin = require('./Mixin.js');
-var HOC = require('./HOC.js');
-var Decorator = require('./Decorator.js');
 var options = {};
 
 Formsy.Mixin = Mixin;
-Formsy.HOC = HOC;
-Formsy.Decorator = Decorator;
 
 Formsy.defaults = function (passedOptions) {
   options = passedOptions;
@@ -21,7 +16,6 @@ Formsy.addValidationRule = function (name, func) {
 };
 
 Formsy.Form = React.createClass({
-  displayName: 'Formsy',
   getInitialState: function () {
     return {
       isValid: true,
@@ -43,23 +37,6 @@ Formsy.Form = React.createClass({
       validationErrors: null,
       preventExternalInvalidation: false
     };
-  },
-
-  childContextTypes: {
-    formsy: React.PropTypes.object
-  },
-  getChildContext: function () {
-    return {
-      formsy: {
-        attachToForm: this.attachToForm,
-        detachFromForm: this.detachFromForm,
-        validate: this.validate,
-        isFormDisabled: this.isFormDisabled,
-        isValidValue: function (component, value) {
-          return this.runValidation(component, value).isValid;
-        }.bind(this)
-      }
-    }
   },
 
   // Add a map to store the inputs of the form, a model to store
@@ -120,18 +97,17 @@ Formsy.Form = React.createClass({
     if (this.props.mapping) {
       return this.props.mapping(this.model)
     } else {
-      return formDataToObject(Object.keys(this.model).reduce(function (mappedModel, key) {
-
+      return Object.keys(this.model).reduce(function (mappedModel, key) {
+        
         var keyArray = key.split('.');
-        var base = mappedModel;
         while (keyArray.length) {
           var currentKey = keyArray.shift();
-          base = (base[currentKey] = keyArray.length ? base[currentKey] || {} : this.model[key]);
+          mappedModel[currentKey] = keyArray.length ? mappedModel[currentKey] || {} : this.model[key];
         }
 
         return mappedModel;
 
-      }.bind(this), {}));
+      }.bind(this), {});
     }
   },
 
@@ -161,7 +137,7 @@ Formsy.Form = React.createClass({
       var component = this.inputs[name];
       var args = [{
         _isValid: !(name in errors),
-        _validationError: typeof errors[name] === 'string' ? [errors[name]] : errors[name]
+        _validationError: errors[name]
       }];
       component.setState.apply(component, args);
     }.bind(this));
@@ -193,10 +169,43 @@ Formsy.Form = React.createClass({
       }
       var args = [{
         _isValid: this.props.preventExternalInvalidation || false,
-        _externalError: typeof errors[name] === 'string' ? [errors[name]] : errors[name]
+        _externalError: errors[name]
       }];
       component.setState.apply(component, args);
     }.bind(this));
+  },
+
+  // Traverse the children and children of children to find
+  // all inputs by checking the name prop. Maybe do a better
+  // check here
+  traverseChildrenAndRegisterInputs: function (children) {
+
+    if (typeof children !== 'object' || children === null) {
+      return children;
+    }
+    return React.Children.map(children, function (child) {
+
+      if (typeof child !== 'object' || child === null) {
+        return child;
+      }
+
+      if (child.props && child.props.name) {
+
+        return React.cloneElement(child, {
+          _attachToForm: this.attachToForm,
+          _detachFromForm: this.detachFromForm,
+          _validate: this.validate,
+          _isFormDisabled: this.isFormDisabled,
+          _isValidValue: function (component, value) {
+            return this.runValidation(component, value).isValid;
+          }.bind(this)
+        }, child.props && child.props.children);
+      } else {
+        return React.cloneElement(child, {}, this.traverseChildrenAndRegisterInputs(child.props && child.props.children));
+      }
+
+    }, this);
+
   },
 
   isFormDisabled: function () {
@@ -283,29 +292,23 @@ Formsy.Form = React.createClass({
       error: (function () {
 
         if (isValid && !isRequired) {
-          return [];
+          return '';
         }
 
         if (validationResults.errors.length) {
-          return validationResults.errors;
+          return validationResults.errors[0];
         }
 
         if (this.props.validationErrors && this.props.validationErrors[component.props.name]) {
-          return typeof this.props.validationErrors[component.props.name] === 'string' ? [this.props.validationErrors[component.props.name]] : this.props.validationErrors[component.props.name];
+          return this.props.validationErrors[component.props.name];
         }
 
         if (isRequired) {
-          var error = validationErrors[requiredResults.success[0]];
-          return error ? [error] : null;
+          return validationErrors[requiredResults.success[0]] || null;
         }
 
-        if (validationResults.failed.length) {
-          return validationResults.failed.map(function(failed) {
-            return validationErrors[failed] ? validationErrors[failed] : validationError;
-          }).filter(function(x, pos, arr) {
-            // Remove duplicates
-            return arr.indexOf(x) === pos;
-          });
+        if (!isValid) {
+          return validationErrors[validationResults.failed[0]] || validationError;
         }
 
       }.call(this))
@@ -367,15 +370,17 @@ Formsy.Form = React.createClass({
   // Validate the form by going through all child input components
   // and check their state
   validateForm: function () {
-    var allIsValid;
+    var allIsValid = true;
     var inputs = this.inputs;
     var inputKeys = Object.keys(inputs);
 
     // We need a callback as we are validating all inputs again. This will
     // run when the last component has set its state
     var onValidationComplete = function () {
-      allIsValid = inputKeys.every(function (name) {
-        return inputs[name].state._isValid;
+      inputKeys.forEach(function (name) {
+        if (!inputs[name].state._isValid) {
+          allIsValid = false;
+        }
       }.bind(this));
 
       this.setState({
@@ -441,7 +446,6 @@ Formsy.Form = React.createClass({
 
     delete this.inputs[component.props.name];
     delete this.model[component.props.name];
-    this.validateForm();
   },
   render: function () {
     var elFn, props;
@@ -463,7 +467,7 @@ Formsy.Form = React.createClass({
 
     return elFn(
       props,
-      this.props.children
+      this.traverseChildrenAndRegisterInputs(this.props.children)
     );
 
   }

@@ -111,7 +111,7 @@ Formsy.Form = React.createClass({
     this.setFormPristine(false);
     this.updateModel();
     var model = this.mapModel();
-    this.props.onSubmit(model, this.resetModel, this.updateInputsWithError);
+    this.props.onSubmit(model, this.resetModel, this.updateInputsWithError, event);
     this.state.isValid ? this.props.onValidSubmit(model, this.resetModel, this.updateInputsWithError) : this.props.onInvalidSubmit(model, this.resetModel, this.updateInputsWithError);
 
   },
@@ -200,6 +200,9 @@ Formsy.Form = React.createClass({
   },
 
   isFormDisabled: function () {
+    if (this.props._isFormDisabled) {
+      return this.props._isFormDisabled();
+    }
     return this.props.disabled;
   },
 
@@ -234,6 +237,9 @@ Formsy.Form = React.createClass({
   // validate the input and set its state. Then check the
   // state of the form itself
   validate: function (component) {
+    if (this.props._validate) {
+      return this.props._validate(component);
+    }
 
     // Trigger onChange
     if (this.state.canChange) {
@@ -417,6 +423,10 @@ Formsy.Form = React.createClass({
   // Method put on each input component to register
   // itself to the form
   attachToForm: function (component) {
+    if (this.props._attachToForm) {
+      return this.props._attachToForm(component);
+    }
+
     this.inputs[component.props.name] = component;
     this.model[component.props.name] = component.state._value;
     this.validate(component);
@@ -425,18 +435,24 @@ Formsy.Form = React.createClass({
   // Method put on each input component to unregister
   // itself from the form
   detachFromForm: function (component) {
+    if (this.props._detachFromForm) {
+      return this.props._detachFromForm(component);
+    }
+
     delete this.inputs[component.props.name];
     delete this.model[component.props.name];
     this.validateForm();
   },
   render: function () {
+    var elFn;
 
-    return (
-      <form {...this.props} onSubmit={this.submit}>
-        {this.props.children}
-      </form>
-    );
+    if (this.props.extended) {
+      elFn = React.DOM.div;
+    } else {
+      elFn = React.DOM.form;
+    }
 
+    return elFn(this.props, this.props.children);
   }
 });
 

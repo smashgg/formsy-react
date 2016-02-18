@@ -1,4 +1,4 @@
-formsy-react  [![GitHub release](https://img.shields.io/github/release/christianalfoni/formsy-react.svg)](https://github.com/christianalfoni/formsy-react/releases) ![build](https://travis-ci.org/christianalfoni/formsy-react.svg)
+formsy-react  [![GitHub release](https://img.shields.io/github/release/christianalfoni/formsy-react.svg)](https://github.com/christianalfoni/formsy-react/releases) [![Build Status](https://travis-ci.org/christianalfoni/formsy-react.svg?branch=master)](https://travis-ci.org/christianalfoni/formsy-react)
 ============
 
 A form input builder and validator for React JS
@@ -6,10 +6,12 @@ A form input builder and validator for React JS
 | [How to use](#how-to-use) | [API](/API.md) | [Examples](/examples) |
 |---|---|---|
 
+### Currently, the development is in 'react-0.14' branch. For more information see [#158](https://github.com/christianalfoni/formsy-react/issues/158)
+
 ### From version 0.12.0 Formsy only supports React 0.13.1 and up
 
 ## <a name="background">Background</a>
-I wrote an article on forms and validation with React JS, [Nailing that validation with React JS](http://christianalfoni.github.io/javascript/2014/10/22/nailing-that-validation-with-reactjs.html), the result of that was this extension. 
+I wrote an article on forms and validation with React JS, [Nailing that validation with React JS](http://christianalfoni.github.io/javascript/2014/10/22/nailing-that-validation-with-reactjs.html), the result of that was this extension.
 
 The main concept is that forms, inputs and validation is done very differently across developers and projects. This extension to React JS aims to be that "sweet spot" between flexibility and reusability.
 
@@ -19,11 +21,14 @@ The main concept is that forms, inputs and validation is done very differently a
 
   2. Add validation rules and use them with simple syntax
 
-  3. Use handlers for different states of your form. Ex. "onSubmit", "onError", "onValid" etc. 
+  3. Use handlers for different states of your form. Ex. "onSubmit", "onError", "onValid" etc.
 
-  4. Server validation errors automatically binds to the correct form input component
+  4. Pass external errors to the form to invalidate elements
 
   5. You can dynamically add form elements to your form and they will register/unregister to the form
+
+## Default elements
+You can look at examples in this repo or use the [formsy-react-components](https://github.com/twisty/formsy-react-components) project to use bootstrap with formsy-react.
 
 ## Install
 
@@ -49,6 +54,11 @@ Complete API reference is available [here](/API.md).
   /** @jsx React.DOM */
   var Formsy = require('formsy-react');
   var MyAppForm = React.createClass({
+    getInitialState: function () {
+      return {
+        canSubmit: false
+      }
+    },
     enableButton: function () {
       this.setState({
         canSubmit: true
@@ -84,7 +94,7 @@ This code results in a form with a submit button that will run the `submit` meth
     // Add the Formsy Mixin
     mixins: [Formsy.Mixin],
 
-    // setValue() will set the value of the component, which in 
+    // setValue() will set the value of the component, which in
     // turn will validate it and the rest of the form
     changeValue: function (event) {
       this.setValue(event.currentTarget.value);
@@ -92,9 +102,9 @@ This code results in a form with a submit button that will run the `submit` meth
     render: function () {
 
       // Set a specific className based on the validation
-      // state of this component. showRequired() is true 
-      // when the value is empty and the required prop is 
-      // passed to the input. showError() is true when the 
+      // state of this component. showRequired() is true
+      // when the value is empty and the required prop is
+      // passed to the input. showError() is true when the
       // value typed is invalid
       var className = this.showRequired() ? 'required' : this.showError() ? 'error' : null;
 

@@ -464,6 +464,7 @@ Formsy.Form = React.createClass({
         autoComplete: this.props.autoComplete
       };
     }
+	elFn = this.props.elFn || elFn;
 
     return elFn(
       props,

@@ -41,8 +41,7 @@ Formsy.Form = React.createClass({
       onInvalid: function () {},
       onChange: function () {},
       validationErrors: null,
-      preventExternalInvalidation: false,
-      autofill: false
+      preventExternalInvalidation: false
     };
   },
 
@@ -70,34 +69,7 @@ Formsy.Form = React.createClass({
   },
 
 	componentDidMount: function () {
-		if (this.props.autofill) {
-			this.manageAutofill();
-		}
 		this.validateForm();
-	},
-
-	// Manually fire input event for all inputs to get around browser autofill
-	manageAutofill: function () {
-		var self = this;
-		var inputsAsDOMNodes = Object.keys(self.inputs).map(function (name) {
-			// firstChild is label of input
-			return self.inputs[name].getDOMNode()['lastChild'];
-		});
-
-		setTimeout(function() {
-			inputsAsDOMNodes.forEach(function (node) {
-				if (self.isMounted()) {
-					triggerInputEvent(node);
-				}
-			});
-		}, 100);
-
-		function triggerInputEvent(node) {
-			var doc = window.document;
-			var event = doc.createEvent("HTMLEvents");
-			event.initEvent("input", true, true);
-			node.dispatchEvent(event);
-		}
 	},
 
   componentWillUpdate: function () {

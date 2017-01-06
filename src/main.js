@@ -107,7 +107,7 @@ Formsy.Form = React.createClass({
     // so validation becomes visible (if based on isPristine)
     this.setFormPristine(false);
     var model = this.getModel();
-    this.props.onSubmit(model, this.resetModel, this.updateInputsWithError);
+    this.props.onSubmit(model, this.resetModel, this.updateInputsWithError, event);
     this.state.isValid ? this.props.onValidSubmit(model, this.resetModel, this.updateInputsWithError) : this.props.onInvalidSubmit(model, this.resetModel, this.updateInputsWithError);
 
   },

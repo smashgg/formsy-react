@@ -40,6 +40,7 @@ Formsy.Form = React.createClass({
       onValid: function () {},
       onInvalid: function () {},
       onChange: function () {},
+      // SGG Hack: Formsy reeeeeallly really wants to validate.
       doValidation: true,
       validationErrors: null,
       preventExternalInvalidation: false

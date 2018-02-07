@@ -40,6 +40,8 @@ Formsy.Form = React.createClass({
       onValid: function () {},
       onInvalid: function () {},
       onChange: function () {},
+      // SGG Hack: Formsy reeeeeallly really wants to validate.
+      doValidation: true,
       validationErrors: null,
       preventExternalInvalidation: false
     };
@@ -242,10 +244,14 @@ Formsy.Form = React.createClass({
   // validate the input and set its state. Then check the
   // state of the form itself
   validate: function (component) {
-
     // Trigger onChange
     if (this.state.canChange) {
       this.props.onChange(this.getCurrentValues(), this.isChanged());
+    }
+
+    // SGG Hack: Formsy reeeeeallly really wants to validate.
+    if (!this.props.doValidation) {
+      return false;
     }
 
     var validation = this.runValidation(component);
@@ -369,6 +375,15 @@ Formsy.Form = React.createClass({
   // Validate the form by going through all child input components
   // and check their state
   validateForm: function () {
+    // SGG Hack: Formsy reeeeeallly really wants to validate, even on unmounting...
+    if (!this.props.doValidation) {
+      if (!this.state.canChange) {
+        this.setState({
+          canChange: true
+        });
+      }
+      return false;
+    }
 
     // We need a callback as we are validating all inputs again. This will
     // run when the last component has set its state

@@ -1,4 +1,6 @@
+var PropTypes = require('prop-types');
 var React = global.React || require('react');
+var createReactClass = require('create-react-class');
 var Formsy = {};
 var validationRules = require('./validationRules.js');
 var formDataToObject = require('form-data-to-object');
@@ -21,7 +23,7 @@ Formsy.addValidationRule = function (name, func) {
   validationRules[name] = func;
 };
 
-Formsy.Form = React.createClass({
+Formsy.Form = createReactClass({
   displayName: 'Formsy',
   getInitialState: function () {
     return {
@@ -48,7 +50,7 @@ Formsy.Form = React.createClass({
   },
 
   childContextTypes: {
-    formsy: React.PropTypes.object
+    formsy: PropTypes.object
   },
   getChildContext: function () {
     return {
@@ -426,7 +428,7 @@ Formsy.Form = React.createClass({
 
     // If there are no inputs, set state where form is ready to trigger
     // change event. New inputs might be added later
-    if (!this.inputs.length && this.isMounted()) {
+    if (!this.inputs.length) {
       this.setState({
         canChange: true
       });
